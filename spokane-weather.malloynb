@@ -1,0 +1,15 @@
+>>>malloy
+source: GEGweather is duckdb.table('./spokane-temp-1.csv') extend {
+    rename: day1 is `Date`
+    measure: 
+    snow_days is count() {where: Snowfall > 0.01}
+    dimension:
+    high_low_diff is MaxTemperature - MinTemperature
+}
+>>>malloy
+# line_chart
+run: GEGweather -> {
+    group_by: day1.year
+    aggregate: snow_days
+    --limit: 10000000
+}
