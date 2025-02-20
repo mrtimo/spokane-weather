@@ -3,14 +3,30 @@ source: GEGweather is duckdb.table('./spokane-temp-1.csv') extend {
     rename: day1 is `day`
     measure: 
     snow_days is count() {where: Snowfall > 0.01}
-    --very_cold_days is count() {where: R}
-   -- dimension:
-   -- high_low_diff is MaxTemperature - MinTemperature
+    total_snow_and_precip is sum(Snowfall) + sum(Precipitation)
+    total_snowfall is sum(Snowfall)
+    total_precip is sum(Precipitation)
 }
 >>>malloy
-# line_chart
+# bar_chart
 run: GEGweather -> {
     group_by: day1.year
-    aggregate: snow_days
-limit: 10000000
+    aggregate: total_snow_and_precip
+    limit: 10000000
+
+        # tooltip bar_chart.size=xs
+        nest: `By Month` is {
+          group_by: day1.month
+          aggregate: total_snow_and_precip
+        }
+
+        # tooltip
+        nest: `Rainiest Months` is {
+          group_by: day1.month
+          aggregate: total_snowfall, total_precip
+          # hidden
+          aggregate: total_snow_and_precip
+          order_by: total_snow_and_precip desc
+          limit: 3
+        }
 }
